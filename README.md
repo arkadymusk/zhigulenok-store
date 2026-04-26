@@ -644,3 +644,61 @@ Authorization: Bearer jwt-token
   }
 ]
 ```
+
+## Локальный запуск проекта
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+После запуска backend доступен по адресу:
+
+```text
+http://localhost:3000
+```
+
+Проверка работы backend:
+
+```text
+http://localhost:3000/api/health
+```
+
+Ожидаемый ответ:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+После запуска frontend доступен по адресу:
+
+```text
+http://localhost:5173
+```
+
+### База данных
+
+Для запуска PostgreSQL используется Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+База данных доступна на порту:
+
+```text
+5432
+```
