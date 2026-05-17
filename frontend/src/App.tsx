@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import "./App.css";
 
-const API_URL = "http://localhost:3000/api";
+const AUTH_API_URL = "http://localhost:4001/api";
+const CATALOG_API_URL = "http://localhost:4002/api";
+const CART_API_URL = "http://localhost:4003/api";
 
 type Product = {
   id: number;
@@ -114,7 +116,7 @@ function CatalogPage() {
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
+    fetch(`${CATALOG_API_URL}/products`)
       .then(readJsonResponse)
       .then((data) => {
         setProducts(data);
@@ -138,7 +140,7 @@ function CatalogPage() {
 
     setStatusMessage("");
 
-    fetch(`${API_URL}/cart`, {
+    fetch(`${CART_API_URL}/cart`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -191,18 +193,23 @@ function CatalogPage() {
 
               <h3>{product.name}</h3>
               <p>{product.description}</p>
+
               <p>
                 <b>Артикул:</b> {product.articleNumber}
               </p>
+
               <p>
                 <b>Модель:</b> {product.carModel}
               </p>
+
               <p>
                 <b>Категория:</b> {product.category?.name || "Без категории"}
               </p>
+
               <p>
                 <b>Остаток:</b> {product.stockQuantity} шт.
               </p>
+
               <p className="price">{product.price} ₽</p>
 
               <button
@@ -239,7 +246,7 @@ function CartPage() {
       return;
     }
 
-    fetch(`${API_URL}/cart`, {
+    fetch(`${CART_API_URL}/cart`, {
       headers: getAuthHeaders(),
     })
       .then(readJsonResponse)
@@ -263,7 +270,7 @@ function CartPage() {
 
     setStatusMessage("");
 
-    fetch(`${API_URL}/cart/${itemId}`, {
+    fetch(`${CART_API_URL}/cart/${itemId}`, {
       method: "PATCH",
       headers: getAuthHeaders(),
       body: JSON.stringify({ quantity }),
@@ -286,7 +293,7 @@ function CartPage() {
 
     setStatusMessage("");
 
-    fetch(`${API_URL}/cart/${itemId}`, {
+    fetch(`${CART_API_URL}/cart/${itemId}`, {
       method: "DELETE",
       headers: getAuthHeaders(),
     })
@@ -314,7 +321,7 @@ function CartPage() {
 
     setStatusMessage("");
 
-    fetch(`${API_URL}/orders`, {
+    fetch(`${CART_API_URL}/orders`, {
       method: "POST",
       headers: getAuthHeaders(),
     })
@@ -412,7 +419,7 @@ function LoginPage() {
   function handleLogin() {
     setStatusMessage("");
 
-    fetch(`${API_URL}/auth/login`, {
+    fetch(`${AUTH_API_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -471,7 +478,7 @@ function RegisterPage() {
   function handleRegister() {
     setStatusMessage("");
 
-    fetch(`${API_URL}/auth/register`, {
+    fetch(`${AUTH_API_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
