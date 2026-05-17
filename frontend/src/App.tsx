@@ -107,56 +107,75 @@ function CatalogPage() {
   );
 }
 
-function CartPage() {
-  const items = [
-    {
-      id: 1,
-      name: "Масляный фильтр ВАЗ 2107",
-      articleNumber: "OF-2107",
-      price: 750,
-      quantity: 2
-    },
-    {
-      id: 2,
-      name: "Тормозные колодки Lada Granta",
-      articleNumber: "BR-GRANTA-01",
-      price: 1800,
-      quantity: 1
-    }
-  ];
+type CartItem = {
+  id: number;
+  productId: number;
+  name: string;
+  articleNumber: string;
+  price: number;
+  quantity: number;
+  total: number;
+};
 
-  const totalPrice = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+type CartResponse = {
+  items: CartItem[];
+  totalPrice: number;
+};
+
+function CartPage() {
+  const [cart, setCart] = useState<CartResponse>({
+    items: [],
+    totalPrice: 0
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/cart")
+      .then((res) => res.json())
+      .then((data) => {
+        setCart(data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Ошибка загрузки корзины:", error);
+        setIsLoading(false);
+      });
+  }, []);
 
   return (
     <main className="page">
       <h1>Корзина</h1>
 
-      <div className="cartList">
-        {items.map((item) => (
-          <div className="cartItem" key={item.id}>
-            <div>
-              <h3>{item.name}</h3>
-              <p>Артикул: {item.articleNumber}</p>
-              <p>Цена: {item.price} ₽</p>
-            </div>
+      {isLoading ? (
+        <p>Загрузка корзины...</p>
+      ) : (
+        <>
+          <div className="cartList">
+            {cart.items.map((item) => (
+              <div className="cartItem" key={item.id}>
+                <div>
+                  <h3>{item.name}</h3>
+                  <p>Артикул: {item.articleNumber}</p>
+                  <p>Цена: {item.price} ₽</p>
+                </div>
 
-            <div className="cartActions">
-              <button>-</button>
-              <span>{item.quantity}</span>
-              <button>+</button>
-              <button>Удалить</button>
-            </div>
+                <div className="cartActions">
+                  <button>-</button>
+                  <span>{item.quantity}</span>
+                  <button>+</button>
+                  <button>Удалить</button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div className="cartSummary">
-        <h2>Итого: {totalPrice} ₽</h2>
-        <button>Оформить заказ</button>
-      </div>
+          <div className="cartSummary">
+            <h2>Итого: {cart.totalPrice} ₽</h2>
+            <button>Оформить заказ</button>
+          </div>
+        </>
+      )}
     </main>
   );
 }
