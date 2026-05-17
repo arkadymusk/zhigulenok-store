@@ -67,6 +67,26 @@ function CatalogPage() {
       });
   }, []);
 
+  function addToCart(productId: number) {
+    fetch("http://localhost:3000/api/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        productId,
+        quantity: 1
+      })
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Товар добавлен в корзину");
+      })
+      .catch((error) => {
+        console.error("Ошибка добавления в корзину:", error);
+      });
+  }
+
   return (
     <main className="page">
       <h1>Каталог автозапчастей</h1>
@@ -91,14 +111,13 @@ function CatalogPage() {
               <div className="imagePlaceholder">Фото товара</div>
               <h3>{product.name}</h3>
               <p>{product.description}</p>
-              <p>
-                <b>Артикул:</b> {product.articleNumber}
-              </p>
-              <p>
-                <b>Модель:</b> {product.carModel}
-              </p>
+              <p><b>Артикул:</b> {product.articleNumber}</p>
+              <p><b>Модель:</b> {product.carModel}</p>
               <p className="price">{product.price} ₽</p>
-              <button>Добавить в корзину</button>
+
+              <button onClick={() => addToCart(product.id)}>
+                Добавить в корзину
+              </button>
             </div>
           ))}
         </div>
@@ -143,6 +162,40 @@ function CartPage() {
       });
   }, []);
 
+  function updateCartItem(itemId: number, quantity: number) {
+    fetch(`http://localhost:3000/api/cart/${itemId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ quantity })
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Количество обновлено");
+      });
+  }
+
+  function deleteCartItem(itemId: number) {
+    fetch(`http://localhost:3000/api/cart/${itemId}`, {
+      method: "DELETE"
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Товар удален из корзины");
+      });
+  }
+
+  function createOrder() {
+    fetch("http://localhost:3000/api/orders", {
+      method: "POST"
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Заказ оформлен");
+      });
+  }
+
   return (
     <main className="page">
       <h1>Корзина</h1>
@@ -161,10 +214,10 @@ function CartPage() {
                 </div>
 
                 <div className="cartActions">
-                  <button>-</button>
+                  <button onClick={() => updateCartItem(item.id, item.quantity - 1)}>-</button>
                   <span>{item.quantity}</span>
-                  <button>+</button>
-                  <button>Удалить</button>
+                  <button onClick={() => updateCartItem(item.id, item.quantity + 1)}>+</button>
+                  <button onClick={() => deleteCartItem(item.id)}>Удалить</button>
                 </div>
               </div>
             ))}
@@ -172,7 +225,7 @@ function CartPage() {
 
           <div className="cartSummary">
             <h2>Итого: {cart.totalPrice} ₽</h2>
-            <button>Оформить заказ</button>
+            <button onClick={createOrder}>Оформить заказ</button>
           </div>
         </>
       )}
