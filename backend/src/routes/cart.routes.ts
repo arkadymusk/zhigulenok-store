@@ -1,54 +1,108 @@
 import { Router } from "express";
+import { prisma } from "../lib/prisma";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.json({
-    items: [
-      {
-        id: 1,
-        productId: 1,
-        name: "Масляный фильтр ВАЗ 2107",
-        articleNumber: "OF-2107",
-        price: 750,
-        quantity: 2,
-        total: 1500
+async function getCart() {
+  const items = await prisma.cartItem.findMany({
+    include: {
+      product: true,
+    },
+  });
+
+  const formattedItems = items.map((item) => ({
+    id: item.id,
+    productId: item.productId,
+    name: item.product.name,
+    articleNumber: item.product.articleNumber,
+    price: item.product.price,
+    quantity: item.quantity,
+    total: item.product.price * item.quantity,
+  }));
+
+  const totalPrice = formattedItems.reduce(
+    (sum, item) => sum + item.total,
+    0
+  );
+
+  return {
+    items: formattedItems,
+    totalPrice,
+  };
+}
+
+router.get("/", async (req, res) => {
+  const cart = await getCart();
+  res.json(cart);
+});
+
+router.post("/", async (req, res) => {
+  const { productId, quantity } = req.body;
+
+  const existingItem = await prisma.cartItem.findFirst({
+    where: {
+      productId: Number(productId),
+    },
+  });
+
+  if (existingItem) {
+    await prisma.cartItem.update({
+      where: {
+        id: existingItem.id,
       },
-      {
-        id: 2,
-        productId: 2,
-        name: "Тормозные колодки Lada Granta",
-        articleNumber: "BR-GRANTA-01",
-        price: 1800,
-        quantity: 1,
-        total: 1800
-      }
-    ],
-    totalPrice: 3300
-  });
+      data: {
+        quantity: existingItem.quantity + Number(quantity),
+      },
+    });
+  } else {
+    await prisma.cartItem.create({
+      data: {
+        productId: Number(productId),
+        quantity: Number(quantity),
+      },
+    });
+  }
+
+  const cart = await getCart();
+  res.json(cart);
 });
 
-router.post("/", (req, res) => {
-  res.json({
-    message: "Товар добавлен в корзину",
-    productId: req.body.productId,
-    quantity: req.body.quantity
-  });
+router.patch("/:itemId", async (req, res) => {
+  const itemId = Number(req.params.itemId);
+  const quantity = Number(req.body.quantity);
+
+  if (quantity <= 0) {
+    await prisma.cartItem.delete({
+      where: {
+        id: itemId,
+      },
+    });
+  } else {
+    await prisma.cartItem.update({
+      where: {
+        id: itemId,
+      },
+      data: {
+        quantity,
+      },
+    });
+  }
+
+  const cart = await getCart();
+  res.json(cart);
 });
 
-router.patch("/:itemId", (req, res) => {
-  res.json({
-    message: "Количество товара обновлено",
-    itemId: Number(req.params.itemId),
-    quantity: req.body.quantity
-  });
-});
+router.delete("/:itemId", async (req, res) => {
+  const itemId = Number(req.params.itemId);
 
-router.delete("/:itemId", (req, res) => {
-  res.json({
-    message: "Товар удален из корзины",
-    itemId: Number(req.params.itemId)
+  await prisma.cartItem.delete({
+    where: {
+      id: itemId,
+    },
   });
+
+  const cart = await getCart();
+  res.json(cart);
 });
 
 export default router;

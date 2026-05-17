@@ -1,30 +1,52 @@
 import { Router } from "express";
+import { prisma } from "../lib/prisma";
 
 const router = Router();
 
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    return res.status(400).json({ message: "Пользователь уже существует" });
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password,
+    },
+  });
+
   res.json({
-    id: 1,
-    name: req.body.name,
-    email: req.body.email,
-    token: "mock-jwt-token"
+    message: "Регистрация выполнена",
+    token: `mock-token-${user.id}`,
+    user,
   });
 });
 
-router.post("/login", (req, res) => {
-  res.json({
-    id: 1,
-    name: "Иван Иванов",
-    email: req.body.email,
-    token: "mock-jwt-token"
-  });
-});
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
 
-router.get("/me", (req, res) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      email,
+      password,
+    },
+  });
+
+  if (!user) {
+    return res.status(401).json({ message: "Неверный email или пароль" });
+  }
+
   res.json({
-    id: 1,
-    name: "Иван Иванов",
-    email: "ivan@example.com"
+    message: "Вход выполнен",
+    token: `mock-token-${user.id}`,
+    user,
   });
 });
 
