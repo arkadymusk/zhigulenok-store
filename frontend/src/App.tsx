@@ -234,29 +234,115 @@ function CartPage() {
 }
 
 function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handleLogin() {
+    fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        localStorage.setItem("token", data.token);
+        alert("Вход выполнен");
+      })
+      .catch((error) => {
+        console.error("Ошибка входа:", error);
+        alert("Ошибка входа");
+      });
+  }
+
   return (
     <main className="page formPage">
       <h1>Вход</h1>
 
       <form className="form">
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Пароль" />
-        <button type="button">Войти</button>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Пароль"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+
+        <button type="button" onClick={handleLogin}>
+          Войти
+        </button>
       </form>
     </main>
   );
 }
 
 function RegisterPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handleRegister() {
+    fetch("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password
+      })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        localStorage.setItem("token", data.token);
+        alert("Регистрация выполнена");
+      })
+      .catch((error) => {
+        console.error("Ошибка регистрации:", error);
+        alert("Ошибка регистрации");
+      });
+  }
+
   return (
     <main className="page formPage">
       <h1>Регистрация</h1>
 
       <form className="form">
-        <input type="text" placeholder="Имя" />
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Пароль" />
-        <button type="button">Зарегистрироваться</button>
+        <input
+          type="text"
+          placeholder="Имя"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Пароль"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+
+        <button type="button" onClick={handleRegister}>
+          Зарегистрироваться
+        </button>
       </form>
     </main>
   );
