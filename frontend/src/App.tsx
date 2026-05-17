@@ -63,7 +63,6 @@ function Header() {
 
   function logout() {
     localStorage.removeItem("token");
-    alert("Вы вышли из аккаунта");
     window.location.href = "/";
   }
 
@@ -112,6 +111,7 @@ function HomePage() {
 function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/products`)
@@ -121,7 +121,7 @@ function CatalogPage() {
       })
       .catch((error) => {
         console.error("Ошибка загрузки товаров:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       })
       .finally(() => {
         setIsLoading(false);
@@ -132,9 +132,11 @@ function CatalogPage() {
     const token = getToken();
 
     if (!token) {
-      alert("Сначала войдите в аккаунт");
+      setStatusMessage("Сначала войдите в аккаунт");
       return;
     }
+
+    setStatusMessage("");
 
     fetch(`${API_URL}/cart`, {
       method: "POST",
@@ -146,17 +148,19 @@ function CatalogPage() {
     })
       .then(readJsonResponse)
       .then(() => {
-        alert("Товар добавлен в корзину");
+        setStatusMessage("Товар добавлен в корзину");
       })
       .catch((error) => {
         console.error("Ошибка добавления в корзину:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       });
   }
 
   return (
     <main className="page">
       <h1>Каталог автозапчастей</h1>
+
+      {statusMessage && <p>{statusMessage}</p>}
 
       <div className="filters">
         <input placeholder="Поиск по названию или артикулу" />
@@ -225,6 +229,7 @@ function CartPage() {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const token = getToken();
 
@@ -243,7 +248,7 @@ function CartPage() {
       })
       .catch((error) => {
         console.error("Ошибка загрузки корзины:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       })
       .finally(() => {
         setIsLoading(false);
@@ -252,9 +257,11 @@ function CartPage() {
 
   function updateCartItem(itemId: number, quantity: number) {
     if (!token) {
-      alert("Сначала войдите в аккаунт");
+      setStatusMessage("Сначала войдите в аккаунт");
       return;
     }
+
+    setStatusMessage("");
 
     fetch(`${API_URL}/cart/${itemId}`, {
       method: "PATCH",
@@ -267,15 +274,17 @@ function CartPage() {
       })
       .catch((error) => {
         console.error("Ошибка обновления корзины:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       });
   }
 
   function deleteCartItem(itemId: number) {
     if (!token) {
-      alert("Сначала войдите в аккаунт");
+      setStatusMessage("Сначала войдите в аккаунт");
       return;
     }
+
+    setStatusMessage("");
 
     fetch(`${API_URL}/cart/${itemId}`, {
       method: "DELETE",
@@ -284,23 +293,26 @@ function CartPage() {
       .then(readJsonResponse)
       .then((data) => {
         setCart(data);
+        setStatusMessage("Товар удалён из корзины");
       })
       .catch((error) => {
         console.error("Ошибка удаления товара:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       });
   }
 
   function createOrder() {
     if (!token) {
-      alert("Сначала войдите в аккаунт");
+      setStatusMessage("Сначала войдите в аккаунт");
       return;
     }
 
     if (cart.items.length === 0) {
-      alert("Корзина пустая");
+      setStatusMessage("Корзина пустая");
       return;
     }
+
+    setStatusMessage("");
 
     fetch(`${API_URL}/orders`, {
       method: "POST",
@@ -308,16 +320,16 @@ function CartPage() {
     })
       .then(readJsonResponse)
       .then(() => {
-        alert("Заказ оформлен");
-
         setCart({
           items: [],
           totalPrice: 0,
         });
+
+        setStatusMessage("Заказ оформлен");
       })
       .catch((error) => {
         console.error("Ошибка оформления заказа:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       });
   }
 
@@ -336,6 +348,8 @@ function CartPage() {
   return (
     <main className="page">
       <h1>Корзина</h1>
+
+      {statusMessage && <p>{statusMessage}</p>}
 
       {isLoading ? (
         <p>Загрузка корзины...</p>
@@ -393,8 +407,11 @@ function CartPage() {
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   function handleLogin() {
+    setStatusMessage("");
+
     fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -408,18 +425,19 @@ function LoginPage() {
       .then(readJsonResponse)
       .then((data) => {
         localStorage.setItem("token", data.token);
-        alert("Вход выполнен");
         window.location.href = "/catalog";
       })
       .catch((error) => {
         console.error("Ошибка входа:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       });
   }
 
   return (
     <main className="page formPage">
       <h1>Вход</h1>
+
+      {statusMessage && <p>{statusMessage}</p>}
 
       <form className="form">
         <input
@@ -448,8 +466,11 @@ function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   function handleRegister() {
+    setStatusMessage("");
+
     fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: {
@@ -464,18 +485,19 @@ function RegisterPage() {
       .then(readJsonResponse)
       .then((data) => {
         localStorage.setItem("token", data.token);
-        alert("Регистрация выполнена");
         window.location.href = "/catalog";
       })
       .catch((error) => {
         console.error("Ошибка регистрации:", error);
-        alert(error.message);
+        setStatusMessage(error.message);
       });
   }
 
   return (
     <main className="page formPage">
       <h1>Регистрация</h1>
+
+      {statusMessage && <p>{statusMessage}</p>}
 
       <form className="form">
         <input
