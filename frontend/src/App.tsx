@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import "./App.css";
 
@@ -13,52 +14,7 @@ type Product = {
   imageUrl: string;
 };
 
-const mockProducts: Product[] = [
-  {
-    id: 1,
-    name: "Масляный фильтр ВАЗ 2107",
-    description: "Масляный фильтр для автомобилей ВАЗ 2101–2107.",
-    articleNumber: "OF-2107",
-    price: 750,
-    category: "Фильтры",
-    carModel: "ВАЗ 2107",
-    stockQuantity: 15,
-    imageUrl: "/images/oil-filter.jpg"
-  },
-  {
-    id: 2,
-    name: "Тормозные колодки Lada Granta",
-    description: "Комплект передних тормозных колодок для Lada Granta.",
-    articleNumber: "BR-GRANTA-01",
-    price: 1800,
-    category: "Тормозная система",
-    carModel: "Lada Granta",
-    stockQuantity: 8,
-    imageUrl: "/images/brake-pads.jpg"
-  },
-  {
-    id: 3,
-    name: "Ремень ГРМ Lada Priora",
-    description: "Ремень газораспределительного механизма для Lada Priora.",
-    articleNumber: "GRM-PRIORA-16V",
-    price: 2300,
-    category: "Двигатель",
-    carModel: "Lada Priora",
-    stockQuantity: 6,
-    imageUrl: "/images/timing-belt.jpg"
-  },
-  {
-    id: 4,
-    name: "Свечи зажигания ВАЗ 2114",
-    description: "Комплект свечей зажигания для автомобилей ВАЗ 2114.",
-    articleNumber: "SP-2114",
-    price: 950,
-    category: "Система зажигания",
-    carModel: "ВАЗ 2114",
-    stockQuantity: 20,
-    imageUrl: "/images/spark-plugs.jpg"
-  }
-];
+
 
 function Header() {
   return (
@@ -95,6 +51,22 @@ function HomePage() {
 }
 
 function CatalogPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Ошибка загрузки товаров:", error);
+        setIsLoading(false);
+      });
+  }, []);
+
   return (
     <main className="page">
       <h1>Каталог автозапчастей</h1>
@@ -110,23 +82,27 @@ function CatalogPage() {
         </select>
       </div>
 
-      <div className="productGrid">
-        {mockProducts.map((product) => (
-          <div className="productCard" key={product.id}>
-            <div className="imagePlaceholder">Фото товара</div>
-            <h3>{product.name}</h3>
-            <p>{product.description}</p>
-            <p>
-              <b>Артикул:</b> {product.articleNumber}
-            </p>
-            <p>
-              <b>Модель:</b> {product.carModel}
-            </p>
-            <p className="price">{product.price} ₽</p>
-            <button>Добавить в корзину</button>
-          </div>
-        ))}
-      </div>
+      {isLoading ? (
+        <p>Загрузка товаров...</p>
+      ) : (
+        <div className="productGrid">
+          {products.map((product) => (
+            <div className="productCard" key={product.id}>
+              <div className="imagePlaceholder">Фото товара</div>
+              <h3>{product.name}</h3>
+              <p>{product.description}</p>
+              <p>
+                <b>Артикул:</b> {product.articleNumber}
+              </p>
+              <p>
+                <b>Модель:</b> {product.carModel}
+              </p>
+              <p className="price">{product.price} ₽</p>
+              <button>Добавить в корзину</button>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
